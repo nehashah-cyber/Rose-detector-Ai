@@ -13,8 +13,8 @@ st.write("Upload a flower image, and the AI will detect whether it is a Rose or 
 
 @st.cache_resource
 def load_model():
-    # Verified Image Classification Model
-    return pipeline("image-classification", model="google/vit-base-patch16-224")
+    # Reliable Flower & Plant classifier model
+    return pipeline("image-classification", model="microsoft/resnet-50")
 
 classifier = load_model()
 
@@ -25,27 +25,27 @@ if uploaded_file is not None:
     st.image(image, caption="Uploaded Image", use_container_width=True)
     
     with st.spinner("Analyzing image..."):
-        # Top 5 predictions fetch kar rahe hain
+        # Fetch Top 5 predictions
         results = classifier(image, top_k=5)
         
         is_rose = False
         confidence = 0.0
-        rose_label_found = ""
+        detected_label = ""
         
-        # Rose related labels checklist
-        rose_keywords = ['rose', 'roses', 'rosehip', 'flower', 'flowering']
+        # Broad keywords list for Rose detection
+        rose_keywords = ['rose', 'roses', 'rosehip', 'flower', 'pot', 'flowerpot', 'vase', 'petal']
         
         for result in results:
             label = result['label'].lower()
-            if 'rose' in label:
+            if any(keyword in label for keyword in ['rose', 'rosehip']):
                 is_rose = True
                 confidence = result['score'] * 100
-                rose_label_found = result['label']
+                detected_label = result['label']
                 break
         
         st.divider()
         if is_rose:
-            st.success(f"✅ This is a **Rose**! (Detected: {rose_label_found}, Confidence: {confidence:.2f}%)")
+            st.success(f"✅ This is a **Rose**! (Detected: {detected_label}, Confidence: {confidence:.2f}%)")
         else:
             top_label = results[0]['label']
             top_score = results[0]['score'] * 100
