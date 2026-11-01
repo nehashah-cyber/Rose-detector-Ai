@@ -13,8 +13,8 @@ st.write("Upload a flower image, and the AI will detect whether it is a Rose or 
 
 @st.cache_resource
 def load_model():
-    # Flower classification model
-    return pipeline("image-classification", model="yangy6/vit-base-patch16-224-in21k-flower")
+    # Verified Image Classification Model
+    return pipeline("image-classification", model="google/vit-base-patch16-224")
 
 classifier = load_model()
 
@@ -25,19 +25,19 @@ if uploaded_file is not None:
     st.image(image, caption="Uploaded Image", use_container_width=True)
     
     with st.spinner("Analyzing image..."):
-        # Top 5 predictions fetch karen
+        # Top 5 predictions fetch kar rahe hain
         results = classifier(image, top_k=5)
         
         is_rose = False
         confidence = 0.0
         rose_label_found = ""
         
-        # Keywords to match any rose type
-        rose_keywords = ['rose', 'roses', 'garden rose', 'rosehip']
+        # Rose related labels checklist
+        rose_keywords = ['rose', 'roses', 'rosehip', 'flower', 'flowering']
         
         for result in results:
             label = result['label'].lower()
-            if any(keyword in label for keyword in rose_keywords):
+            if 'rose' in label:
                 is_rose = True
                 confidence = result['score'] * 100
                 rose_label_found = result['label']
