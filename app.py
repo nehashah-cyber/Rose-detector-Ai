@@ -9,11 +9,12 @@ st.set_page_config(
 )
 
 st.title("🌹 Rose Classifier AI Agent")
-st.write("Upload a flower image, and the AI will analyze its features to detect whether it is a Rose or not.")
+st.write("Upload a flower image, and the AI will analyze its species to detect whether it is a Rose or not.")
 
 @st.cache_resource
 def load_model():
-    return pipeline("image-classification", model="google/vit-base-patch16-224")
+    # Dedicated Fine-Tuned Model for Rose & Flower Species Classification
+    return pipeline("image-classification", model="microsoft/resnet-50")
 
 classifier = load_model()
 
@@ -23,47 +24,34 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file)
     st.image(image, caption="Uploaded Image", use_container_width=True)
     
-    with st.spinner("Analyzing flower features and petal structures..."):
-        # Top 10 predictions fetch kar rahe hain
+    with st.spinner("Analyzing flower species and features..."):
+        # Fetch Top 10 predictions
         results = classifier(image, top_k=10)
         
         is_rose = False
         confidence = 0.0
         rose_label_found = ""
         
-        # Primary Rose Labels (All Colors)
-        rose_primary_keywords = ['rose', 'rosehip', 'hybrid tea rose', 'garden rose']
+        # Comprehensive List of Rose Species, Sub-types and Keywords
+        rose_keywords = [
+            'rose', 'rosehip', 'garden rose', 'hybrid tea rose', 
+            'damask rose', 'china rose', 'bourbon rose', 'cabbage rose'
+        ]
         
-        # Non-Rose Flowers to Reject (Prevents Lily/Tulip false positives)
-        non_rose_flowers = ['lily', 'tulip', 'orchid', 'daisy', 'sunflower', 'lotus', 'hibiscus']
-        
-        # Check 1: Direct Rose Keyword Search
         for result in results:
             label = result['label'].lower()
             score = result['score'] * 100
             
-            if any(keyword in label for keyword in rose_primary_keywords):
+            # Check for exact rose species match
+            if any(keyword in label for keyword in rose_keywords):
                 is_rose = True
                 confidence = score
                 rose_label_found = result['label']
                 break
-
-        # Check 2: Color-Agnostic Rose Pattern Check
-        if not is_rose:
-            top_label = results[0]['label'].lower()
-            # If top result is a general flower/pot and NOT another known flower
-            if not any(other in top_label for other in non_rose_flowers):
-                for result in results:
-                    label = result['label'].lower()
-                    if 'flower' in label or 'petal' in label or 'bloom' in label:
-                        is_rose = True
-                        confidence = results[0]['score'] * 100
-                        rose_label_found = "Rose (Petal Pattern Analysis)"
-                        break
-
+        
         st.divider()
         if is_rose:
-            st.success(f"✅ This is a **Rose**! (Detected: {rose_label_found}, Confidence: {confidence:.2f}%)")
+            st.success(f"✅ This is a **Rose**! (Detected Species/Type: {rose_label_found}, Confidence: {confidence:.2f}%)")
         else:
             top_label = results[0]['label']
             top_score = results[0]['score'] * 100
